@@ -1,0 +1,171 @@
+/* src/styles/Game.css */
+
+/* General App styling */
+.App {
+    text-align: center;
+  }
+  
+  /* Main content area styling */
+  .content-area {
+    margin: 20px;
+    text-align: left;
+  }
+  
+  .content-wrapper {
+    flex-grow: 1;
+    overflow: auto;
+    width: calc(100% - 320px); 
+    box-sizing: border-box;
+  }
+  
+  /* Game GUI styling */
+  .game-gui {
+    flex: 1;
+    text-align: left;
+    margin: 0 20px;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    flex-basis: 20vw; /* Make game GUI take up 20% of the width */
+    max-width: 300px; /* Add a maximum width to prevent it from taking too much space */
+    z-index: 10; /* Keep it on top */
+}
+
+  
+  /* Timer and click counter styling */
+  .timer-clicks {
+    display: flex;
+    justify-content: left;
+    gap: 20px;
+  }
+  
+  /* Congratulations screen styling */
+  .congrats-screen {
+    text-align: center;
+  }
+
+  .game-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 20px;
+  }
+  
+  /* Container for the Wikipedia article */
+  .article-container {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+  
+  /* Ensure images are wrapped by text, similar to Wikipedia's formatting */
+  .article-container img {
+    height: auto;
+    max-width: 40%; /* Limit image width to 40% */
+    float: left; /* Float images to the left by default */
+    margin: 10px; /* Add margin around images */
+  }
+
+  /* Right-align every other image in the article content */
+  .article-container img:nth-of-type(2n) {
+    float: right;
+  }
+  
+  /* Image caption container styling */
+  .image-caption-container {
+    background-color: #f0f0f0;
+    padding: 5px;
+    margin: 10px;
+    display: inline-block;
+    width: auto; /* Fit caption width to image width */
+    max-width: 40%;
+    float: left;
+    clear: both;
+  }
+
+  /* Ensure captions are left-aligned below images */
+  .image-caption-container figcaption {
+    text-align: left;
+  }
+
+  /* Right-align every other image caption container */
+  .article-container .image-caption-container:nth-of-type(2n) {
+    float: right;
+  }
+
+  /* Ensure infoboxes, sidebars, and other sidebar elements float to the right with consistent width */
+  .article-container .infobox, 
+  .article-container .toc, 
+  .article-container .metadata,
+  .article-container .sidebar,
+  .article-container .sidebar-collapse,
+  .article-container .nomobile,
+  .article-container .nowraplinks,
+  .article-container .plainlist,
+  .article-container .thumb,
+  .article-container .tmulti,
+  .article-container .tright {
+    float: right;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    width: 250px; /* Set a consistent width for all sidebar elements */
+    clear: right; /* Prevent stacking at the top */
+  }
+
+  /* Wikitable styling */
+  .article-container .wikitable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .article-container .wikitable th {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .article-container .wikitable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  /* Override Wikipedia's default styles for consistent look */
+  .mw-parser-output > * {
+    max-width: 100%;
+  }
+
+  /* Tooltip styling */
+  .custom-tooltip.__react_component_tooltip[data-id="wiki-tooltip"] {
+    background-color: purple !important;
+    color: white !important;
+    font-size: 12pt !important;
+    padding: 10px !important;
+    border-radius: 5px !important;
+  }
+  
+  
+  /* Responsive layout adjustments */
+  @media (min-width: 768px) {
+    .content-area {
+        flex: 1;
+        margin-left: 320px; /* Adjust to make room for the fixed game GUI */
+    }
+
+    .game-container {
+        display: flex;
+        justify-content: flex-end; /* Align items to start */
+        gap: 20px;
+        margin: auto; /* Center the entire game container */
+    }
+
+    .article-container {
+        flex: 3; /* Make article take up available space */
+        }
+}
+
