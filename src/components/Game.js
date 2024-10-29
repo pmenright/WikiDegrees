@@ -17,6 +17,11 @@ function Game() {
   const requestQueue = [];
   let activeRequests = 0;
 
+  const resetRequestState = () => {
+    activeRequests = 0;
+    requestQueue.length = 0;  // Clears the queue
+  };
+
   useEffect(() => {
     let timerInterval;
     if (!gameEnded) {
@@ -90,6 +95,8 @@ function Game() {
         processQueue();
       });
     },
+
+
     (title, retryCount = 0) => {
       requestQueue.push(() => fetchPageContentInternal(title, retryCount));
       processQueue();
@@ -172,7 +179,6 @@ function Game() {
 
     console.log('Navigating to page:', pageTitle);
 
-    
     fetchPageContent(pageTitle)
       .then(() => {
         setClickCount((prevCount) => prevCount + 1);
@@ -180,6 +186,10 @@ function Game() {
       })
       .catch((error) => {
         console.error('Error loading page content:', error);
+        resetRequestState();
+        if (window.confirm('Failed to load page. Would you like to retry?')) {
+          handleLinkClick(linkElement);  // Retry the link click
+        }
       });
 
     if (pageTitle === endPage.replace(/_/g, ' ').toLowerCase()) {
