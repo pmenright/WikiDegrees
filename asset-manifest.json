@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/wikidegrees/static/css/main.6ef1d531.css",
+    "main.js": "/wikidegrees/static/js/main.0bec5b09.js",
+    "index.html": "/wikidegrees/index.html",
+    "main.6ef1d531.css.map": "/wikidegrees/static/css/main.6ef1d531.css.map",
+    "main.0bec5b09.js.map": "/wikidegrees/static/js/main.0bec5b09.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.6ef1d531.css",
+    "static/js/main.0bec5b09.js"
+  ]
+}
