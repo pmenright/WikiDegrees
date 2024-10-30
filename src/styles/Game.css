@@ -14,12 +14,16 @@
   }
 
   /* Game GUI styling */
+  .gui-wrapper {
+    margin: 0 20px;
+    width: 300px; 
+  }
+
   .game-gui {
     text-align: left;
     margin: 0 20px;
-    width: 300px;
-    /* position: fixed;
-    z-index: 10; */
+    width: 100%;
+    position: fixed;
 }
 
  .content-area {
@@ -127,13 +131,4 @@
   /* Override Wikipedia's default styles for consistent look */
   .mw-parser-output > * {
     max-width: 100%;
-  }
-
-  /* Tooltip styling */
-  .custom-tooltip.__react_component_tooltip[data-id="wiki-tooltip"] {
-    background-color: purple !important;
-    color: white !important;
-    font-size: 12pt !important;
-    padding: 10px !important;
-    border-radius: 5px !important;
   }

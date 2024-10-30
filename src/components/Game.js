@@ -275,23 +275,24 @@ function Game() {
 
   return (
     <div className="game-container">
-      <div className="game-gui"> 
-        <h1>Wiki Game</h1>
-        <p>Start Page: <a href={getWikipediaLink(startPage)} target="_blank" rel="noopener noreferrer">{startPage}</a></p>
-        <div className="click-history">
-          <ul>
-            {clickedLinks.map((link, index) => (
-              <li key={index}><a href={getWikipediaLink(link)} target="_blank" rel="noopener noreferrer">{link}</a></li>
-            ))}
-          </ul>
-        </div>
-        <p>End Page: <a href={getWikipediaLink(endPage)} target="_blank" rel="noopener noreferrer">{endPage}</a></p>
-        <div className="timer-clicks">
-          <p>Timer: {formatTime(timer)}</p>
-          <p>Clicks: {clickCount}</p>
+      <div className="gui-wrapper">
+        <div className="game-gui"> 
+          <h1>Wiki Game</h1>
+          <p>Start Page: <a href={getWikipediaLink(startPage)} target="_blank" rel="noopener noreferrer">{startPage}</a></p>
+          <div className="click-history">
+            <ul>
+              {clickedLinks.map((link, index) => (
+                <li key={index}><a href={getWikipediaLink(link)} target="_blank" rel="noopener noreferrer">{link}</a></li>
+              ))}
+            </ul>
+          </div>
+          <p>End Page: <a href={getWikipediaLink(endPage)} target="_blank" rel="noopener noreferrer">{endPage}</a></p>
+          <div className="timer-clicks">
+            <p>Timer: {formatTime(timer)}</p>
+            <p>Clicks: {clickCount}</p>
+          </div>
         </div>
       </div>
-
       <div className="content-area">
         <h1>{currentPageTitle}</h1>
         {renderPageContent()}
