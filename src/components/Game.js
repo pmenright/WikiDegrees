@@ -1,8 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import '../styles/Game.css';
 import DOMPurify from 'dompurify/dist/purify.min';
 import articleTitles from './article_titles.json';
+
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: (retryCount) => Math.min(Math.pow(2, retryCount) * 1000, 10000), // Exponential backoff with a maximum delay of 10 seconds
+  retryCondition: (error) => {
+    // Retry on network errors, 5xx status codes, rate limits, or connection aborted errors
+    const isLocalhost = window.location.hostname === 'localhost';
+    return (
+      !error.response ||
+      (error.response.status >= 500 && error.response.status < 600) ||
+      error.response.status === 429 ||
+      (isLocalhost && error.response.status === 404) ||
+      error.code === 'ECONNABORTED'
+    );
+  }
+});
+
 
 function Game() {
   const [startPage, setStartPage] = useState(null);
@@ -13,15 +31,19 @@ function Game() {
   const [gameEnded, setGameEnded] = useState(false);
   const [currentPageTitle, setCurrentPageTitle] = useState('');
   const [clickedLinks, setClickedLinks] = useState([]);
+  const [hoveredLink, setHoveredLink] = useState('');
+  const [hoveredImage, setHoveredImage] = useState(null);
+  const [hoveredDescription, setHoveredDescription] = useState('');
+  const [showHoveredContent, setShowHoveredContent] = useState(false);
+  const [activeRequests, setActiveRequests] = useState(0);
   const MAX_CONCURRENT_REQUESTS = 2;
-  const requestQueue = [];
-  let activeRequests = 0;
+  // const requestQueue = [];
 
   const resetRequestState = () => {
-    activeRequests = 0;
-    requestQueue.length = 0;  // Clears the queue
+    setActiveRequests(0);
+    // requestQueue = []; // Clear the queue  // Clears the queue
   };
-
+  
   useEffect(() => {
     let timerInterval;
     if (!gameEnded) {
@@ -51,20 +73,34 @@ function Game() {
     initializeGame();
   }, []);
 
-  const fetchRandomPage = () => {
+  const fetchRandomPage = async () => {
     const randomIndex = Math.floor(Math.random() * articleTitles.length);
-    return articleTitles[randomIndex];
+    const title = articleTitles[randomIndex];
+
+    try {
+      const response = await axios.get(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
+      );
+      if (response.status === 200) {
+        return title;
+      } else {
+        throw new Error('Invalid page title');
+      }
+    } catch (error) {
+      console.error('Error validating page title:', error);
+      return fetchRandomPage();
+    }
   };
 
   const initializeGame = async () => {
     let validPairFound = false;
 
     while (!validPairFound) {
-      const start = fetchRandomPage();
-      let end = fetchRandomPage();
+      const start = await fetchRandomPage();
+      let end = await fetchRandomPage();
 
       while (start === end) {
-        end = fetchRandomPage();
+        end = await fetchRandomPage();
       }
 
       try {
@@ -88,30 +124,7 @@ function Game() {
     }
   };
 
-  const fetchPageContent = useCallback(
-    (title, retryCount = 0) => {
-      return new Promise((resolve, reject) => {
-        requestQueue.push(() => fetchPageContentInternal(title, retryCount, resolve, reject));
-        processQueue();
-      });
-    },
-
-
-    (title, retryCount = 0) => {
-      requestQueue.push(() => fetchPageContentInternal(title, retryCount));
-      processQueue();
-    },
-    []
-  );
-
-  const fetchPageContentInternal = async (title, retryCount, resolve, reject) => {
-    if (activeRequests >= MAX_CONCURRENT_REQUESTS) {
-      resolve();
-      return;
-    }
-
-    activeRequests++;
-
+  const fetchPageContent = async (title) => {
     try {
       console.log('Fetching content for:', title);
       const encodedTitle = encodeURIComponent(title).replace(/[()]/g, (c) => `%${c.charCodeAt(0).toString(16)}`);
@@ -119,37 +132,41 @@ function Game() {
         `https://en.wikipedia.org/api/rest_v1/page/html/${encodedTitle}`
       );
       console.log('Content fetched for:', title);
-      resolve();
-      setCurrentPageContent(response.data);
-      setCurrentPageTitle(title);
-      window.scrollTo(0, 0);
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        if (retryCount < 3) {
-          console.warn(`Page not found for "${title}". Retrying (${retryCount + 1}/3).`);
-          setTimeout(() => fetchPageContent(title, retryCount + 1), 1000);
-        } else {
-          console.error(`Failed to load page content for "${title}" after multiple attempts.`);
-          alert(`Failed to load page content for "${title}" after multiple attempts. Please try a different link.`);
-          resolve();
-        }
-      } else {
-        console.error('Error fetching page content:', error);
-        alert(`Failed to load page content for "${title}". Please try a different link.`);
-        reject();
+      if (response.data) {
+        setCurrentPageContent(response.data);
+        setCurrentPageTitle(title);
+        window.scrollTo(0, 0);
+        fetchPageImageAndDescription(title);
       }
-    } finally {
-      activeRequests--;
-      processQueue();
+    } catch (error) {
+      console.error('Error fetching page content:', error);
+      alert(`Failed to load page content for "${title}". Please try a different link.`);
     }
   };
 
-  const processQueue = () => {
-    while (activeRequests < MAX_CONCURRENT_REQUESTS && requestQueue.length > 0) {
-      const nextRequest = requestQueue.shift();
-      nextRequest();
+  const fetchPageImageAndDescription = async (title) => {
+    try {
+      const response = await axios.get(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
+      );
+      if (response.data) {
+        if (response.data.thumbnail && response.data.thumbnail.source) {
+          setHoveredImage(response.data.thumbnail.source);
+        } else {
+          setHoveredImage(null);
+        }
+        setHoveredDescription(response.data.description || '');
+      }
+    } catch (error) {
+      console.error('Error fetching image and description:', error);
+      setHoveredImage(null);
+      setHoveredDescription('');
     }
   };
+
+  // const processQueue = () => {
+//   // Logic to process request queue can be implemented here if needed
+// };
 
   const handleLinkClick = (linkElement) => {
     let linkHref = linkElement.getAttribute('href');
@@ -186,7 +203,6 @@ function Game() {
       })
       .catch((error) => {
         console.error('Error loading page content:', error);
-        resetRequestState();
         if (window.confirm('Failed to load page. Would you like to retry?')) {
           handleLinkClick(linkElement);  // Retry the link click
         }
@@ -197,49 +213,101 @@ function Game() {
     }
   };
 
-  const handleContentClick = (e) => {
-    let target = e.target;
-    while (target && target !== e.currentTarget) {
-      if (target.tagName === 'A') {
-        e.preventDefault();
-        handleLinkClick(target);
-        break;
-      }
-      target = target.parentNode;
-    }
+  const handleMouseEnter = (title) => {
+    setHoveredLink(title);
+    setTimeout(() => {
+      setShowHoveredContent(true);
+    }, 500);
+    fetchPageImageAndDescription(title);
   };
 
-  const renderPageContent = () => {
-    const sanitizedContent = DOMPurify.sanitize(currentPageContent, { RETURN_DOM: true });
+  const handleMouseLeave = () => {
+    setHoveredLink('');
+    setHoveredImage(null);
+    setShowHoveredContent(false);
+  };
 
+  useEffect(() => {
+    if (currentPageContent) {
+      const container = document.querySelector('.article-container');
+      if (container) {
+        const links = container.querySelectorAll('a[href]');
+        links.forEach((link) => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleLinkClick(link);
+          });
+          link.addEventListener('mouseenter', () => {
+            let linkHref = link.getAttribute('href');
+            if (linkHref.startsWith('./')) {
+              linkHref = linkHref.replace('./', '/wiki/');
+            } else if (linkHref.startsWith('../')) {
+              linkHref = linkHref.replace('../', '/wiki/');
+            } else if (!linkHref.startsWith('/')) {
+              linkHref = '/wiki/' + linkHref;
+            }
+            const pageTitle = decodeURIComponent(linkHref.replace('/wiki/', '')).replace(/_/g, ' ');
+            handleMouseEnter(pageTitle);
+          });
+          link.addEventListener('mouseleave', handleMouseLeave);
+        });
+      }
+    }
+  }, [currentPageContent]);
+
+  const renderPageContent = () => {
+    const sanitizedContent = DOMPurify.sanitize(currentPageContent, {
+      RETURN_DOM: true,
+      ADD_ATTR: ['href', 'title', 'data-*'],
+      ADD_TAGS: ['a', 'span', 'b', 'i'],
+      KEEP_CONTENT: true,
+      FORBID_TAGS: ['script', 'style']
+    });
+  
     if (!sanitizedContent.querySelector('head')) {
       const headElement = document.createElement('head');
       sanitizedContent.insertBefore(headElement, sanitizedContent.firstChild);
     }
-
+  
     const head = sanitizedContent.querySelector('head');
     if (head) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://en.wikipedia.org/w/load.php?modules=site.styles&only=styles&skin=vector';
-      head.appendChild(link);
+      // Add multiple stylesheets for Wikipedia look and feel
+      const stylesheets = [
+        'https://en.wikipedia.org/w/load.php?modules=site.styles&only=styles&skin=vector',
+        'https://en.wikipedia.org/w/load.php?modules=ext.cite.styles&only=styles',
+        'https://en.wikipedia.org/w/load.php?modules=ext.purge&only=styles'
+      ];
+  
+      stylesheets.forEach((href) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        head.appendChild(link);
+      });
     } else {
-      console.error('Failed to append Wikipedia stylesheet due to missing head element.');
+      console.error('Failed to append Wikipedia stylesheets due to missing head element.');
     }
-
-    sanitizedContent.querySelectorAll('a[href^="/wiki/"]').forEach((link) => {
-      const pageTitle = decodeURIComponent(link.getAttribute('href').replace('/wiki/', '')).replace(/_/g, ' ');
-      
-          });
-
+  
+    sanitizedContent.querySelectorAll('a[href]').forEach((link) => {
+      let linkHref = link.getAttribute('href');
+      if (linkHref.startsWith('./')) {
+        linkHref = linkHref.replace('./', '/wiki/');
+      } else if (linkHref.startsWith('../')) {
+        linkHref = linkHref.replace('../', '/wiki/');
+      } else if (!linkHref.startsWith('/')) {
+        linkHref = '/wiki/' + linkHref;
+      }
+      link.setAttribute('href', linkHref);
+    });
+  
     return (
       <div
         className="article-container"
         dangerouslySetInnerHTML={{ __html: sanitizedContent.outerHTML }}
-        onClick={handleContentClick}
       ></div>
     );
   };
+  
 
   const resetGame = () => {
     setStartPage(null);
@@ -278,25 +346,42 @@ function Game() {
       <div className="gui-wrapper">
         <div className="game-gui"> 
           <h1>Wiki Game</h1>
-          <p>Start Page: <a href={getWikipediaLink(startPage)} target="_blank" rel="noopener noreferrer">{startPage}</a></p>
+          <p>Start Page: <a href={getWikipediaLink(startPage)} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(startPage)} onMouseLeave={handleMouseLeave}>{startPage}</a></p>
           <div className="click-history">
             <ul>
               {clickedLinks.map((link, index) => (
-                <li key={index}><a href={getWikipediaLink(link)} target="_blank" rel="noopener noreferrer">{link}</a></li>
+                <li key={index}>
+                  <a 
+                    href={getWikipediaLink(link)} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    onMouseEnter={() => handleMouseEnter(link)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    {link}
+                  </a>
+                </li>
               ))}
             </ul>
           </div>
-          <p>End Page: <a href={getWikipediaLink(endPage)} target="_blank" rel="noopener noreferrer">{endPage}</a></p>
+          <p>End Page: <a href={getWikipediaLink(endPage)} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(endPage)} onMouseLeave={handleMouseLeave}>{endPage}</a></p>
           <div className="timer-clicks">
             <p>Timer: {formatTime(timer)}</p>
             <p>Clicks: {clickCount}</p>
           </div>
+          {showHoveredContent && (
+            <div className="hovered-content">
+              <h1>{hoveredLink}</h1>
+              {hoveredImage && <img src={hoveredImage} alt="Hovered article thumbnail" />}
+              {hoveredLink && <p>{hoveredLink}</p>}
+            </div>
+          )}
         </div>
       </div>
       <div className="content-area">
         <h1>{currentPageTitle}</h1>
         {renderPageContent()}
-              </div>
+      </div>
     </div>
   );
 }

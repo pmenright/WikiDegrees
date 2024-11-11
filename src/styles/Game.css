@@ -22,14 +22,24 @@
   .game-gui {
     text-align: left;
     margin: 0 20px;
-    width: 100%;
+    max-width: 280px;
     position: fixed;
 }
+
+.hovered-content {
+    max-width: 100%;
+  }
+  
+  .hovered-content img {
+    max-width: 100%;
+    height: auto;
+  }
 
  .content-area {
     margin: 0 20px;
     text-align: left;
     width: calc(100% - 300px);
+    z-index: 100;
 }
   
   /* Timer and click counter styling */
@@ -132,3 +142,5 @@
   .mw-parser-output > * {
     max-width: 100%;
   }
+
+  
