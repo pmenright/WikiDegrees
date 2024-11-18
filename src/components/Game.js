@@ -76,11 +76,13 @@ function Game() {
   const fetchRandomPage = async () => {
     const randomIndex = Math.floor(Math.random() * articleTitles.length);
     const title = articleTitles[randomIndex];
-  
+
     try {
-      const response = await fetchPageSummary(title);
-      if (response && response.title) {
-        return response.title;
+      const response = await axios.get(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
+      );
+      if (response.status === 200) {
+        return title;
       } else {
         throw new Error('Invalid page title');
       }
@@ -89,7 +91,6 @@ function Game() {
       return fetchRandomPage();
     }
   };
-  
 
   const initializeGame = async () => {
     let validPairFound = false;
@@ -101,13 +102,14 @@ function Game() {
       while (start === end) {
         end = await fetchRandomPage();
       }
+
       try {
         console.log('Checking for direct link from start to end');
         const response = await axios.get(
           `https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(start)}`
         );
         const startPageContent = response.data;
-      
+
         if (!startPageContent.includes(`/wiki/${encodeURIComponent(end)}`)) {
           validPairFound = true;
           setStartPage(start);
@@ -118,74 +120,29 @@ function Game() {
         }
       } catch (error) {
         console.error('Error fetching page content for validation:', error);
-      }      
+      }
     }
   };
 
-  const fetchPageContent = async (linkHref) => {
-    const generatePermutations = (title) => {
-      const words = title.split(' ');
-      const permutations = [];
-  
-      const helper = (current, index) => {
-        if (index === words.length) {
-          permutations.push(current.join(' '));
-          return;
-        }
-  
-        const word = words[index];
-        helper([...current, word.toLowerCase()], index + 1);
-        helper([...current, word.charAt(0).toUpperCase() + word.slice(1)], index + 1);
-      };
-  
-      helper([], 0);
-      return permutations;
-    };
-  
-    const tryFetching = async (href) => {
-      const apiUrl = `https://en.wikipedia.org/api/rest_v1/page/html/${href.replace('/wiki/', '')}`;
-      console.log(`Attempting API request: ${apiUrl}`); // Log the URL
-      try {
-        const response = await axios.get(apiUrl);
-        if (response.data) {
-          setCurrentPageContent(response.data);
-          const title = decodeURIComponent(href.replace('/wiki/', ''));
-          setCurrentPageTitle(title);
-          window.scrollTo(0, 0);
-          console.log(`Success: Loaded content from ${apiUrl}`); // Log success
-          return true;
-        }
-      } catch (error) {
-        if (error.response && error.response.status === 404) {
-          console.warn(`404 Error for URL: ${apiUrl}`); // Log 404 errors
-          return false; // Retry other permutations
-        } else {
-          console.error(`Error for URL: ${apiUrl}`, error); // Log other errors
-          throw error; // Stop on non-404 errors
-        }
-      }
-    };
-    
-  
+  const fetchPageContent = async (title) => {
     try {
-      const title = decodeURIComponent(linkHref.replace('/wiki/', '').replace(/_/g, ' '));
-      const permutations = generatePermutations(title);
-  
-      for (const perm of permutations) {
-        const encodedPerm = `/wiki/${encodeURIComponent(perm.replace(/ /g, '_'))}`;
-        const success = await tryFetching(encodedPerm);
-        if (success) {
-          return; // Stop once a valid response is received
-        }
+      console.log('Fetching content for:', title);
+      const encodedTitle = encodeURIComponent(title).replace(/[()]/g, (c) => `%${c.charCodeAt(0).toString(16)}`);
+      const response = await axios.get(
+        `https://en.wikipedia.org/api/rest_v1/page/html/${encodedTitle}`
+      );
+      console.log('Content fetched for:', title);
+      if (response.data) {
+        setCurrentPageContent(response.data);
+        setCurrentPageTitle(title);
+        window.scrollTo(0, 0);
+        fetchPageImageAndDescription(title);
       }
-  
-      alert(`Failed to load page content for "${linkHref}" after trying all permutations.`);
     } catch (error) {
       console.error('Error fetching page content:', error);
-      alert(`An unexpected error occurred while loading "${linkHref}".`);
+      alert(`Failed to load page content for "${title}". Please try a different link.`);
     }
   };
-  
 
   const fetchPageImageAndDescription = async (title) => {
     try {
@@ -211,14 +168,50 @@ function Game() {
 //   // Logic to process request queue can be implemented here if needed
 // };
 
-const handleLinkClick = (linkElement) => {
-  const linkHref = linkElement.getAttribute('href');
-  if (!linkHref.startsWith('/wiki/')) {
-    return; // Ignore external or malformed links
-  }
-  fetchPageContent(linkHref);
-};
+  const handleLinkClick = (linkElement) => {
+    let linkHref = linkElement.getAttribute('href');
+    console.log('Link href:', linkHref);
 
+    if (!linkHref) {
+      return;
+    }
+
+    if (linkHref.startsWith('./')) {
+      linkHref = linkHref.replace('./', '/wiki/');
+    } else if (linkHref.startsWith('../')) {
+      linkHref = linkHref.replace('../', '/wiki/');
+    } else if (!linkHref.startsWith('/')) {
+      linkHref = '/wiki/' + linkHref;
+    }
+
+    if (!linkHref.startsWith('/wiki/')) {
+      return;
+    }
+
+    if (linkHref.includes(':') || linkHref.includes('#') || linkHref.includes('?')) {
+      return;
+    }
+
+    const pageTitle = decodeURIComponent(linkHref.replace('/wiki/', '')).replace(/_/g, ' ').toLowerCase();
+
+    console.log('Navigating to page:', pageTitle);
+
+    fetchPageContent(pageTitle)
+      .then(() => {
+        setClickCount((prevCount) => prevCount + 1);
+        setClickedLinks((prevLinks) => [...prevLinks, pageTitle]);
+      })
+      .catch((error) => {
+        console.error('Error loading page content:', error);
+        if (window.confirm('Failed to load page. Would you like to retry?')) {
+          handleLinkClick(linkElement);  // Retry the link click
+        }
+      });
+
+    if (pageTitle === endPage.replace(/_/g, ' ').toLowerCase()) {
+      setGameEnded(true);
+    }
+  };
 
   const handleMouseEnter = (title) => {
     setHoveredLink(title);
@@ -328,35 +321,9 @@ const handleLinkClick = (linkElement) => {
     initializeGame();
   };
 
-  const fetchPageSummary = async (title) => {
-  try {
-    const response = await axios.get(
-      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
-    );
-    if (response.data) {
-      return response.data;
-    }
-  } catch (error) {
-    console.error("Error fetching page summary:", error);
-  }
-};
-
-const getCanonicalURL = async (articleTitle) => {
-  const summaryData = await fetchPageSummary(articleTitle);
-  if (summaryData && summaryData.content_urls) {
-    return summaryData.content_urls.desktop.page; // Use the canonical desktop URL
-  }
-  return null; // Handle cases where the page is not found
-};
-
-const getWikipediaLink = async (articleTitle) => {
-  const url = await getCanonicalURL(articleTitle);
-  if (url) {
-    return url;
-  }
-  console.error('Failed to generate Wikipedia link for:', articleTitle);
-  return '#'; // Fallback URL
-};
+  const getWikipediaLink = (articleTitle) => {
+    return `https://en.wikipedia.org/wiki/${encodeURIComponent(articleTitle)}`;
+  };
 
   if (!startPage || !endPage) {
     return <div>Loading...</div>;
