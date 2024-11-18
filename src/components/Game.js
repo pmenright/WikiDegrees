@@ -36,8 +36,23 @@ function Game() {
   const [hoveredDescription, setHoveredDescription] = useState('');
   const [showHoveredContent, setShowHoveredContent] = useState(false);
   const [activeRequests, setActiveRequests] = useState(0);
-  const MAX_CONCURRENT_REQUESTS = 2;
-  // const requestQueue = [];
+  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [startPageLink, setStartPageLink] = useState('#');
+const [endPageLink, setEndPageLink] = useState('#');
+const [linkMap, setLinkMap] = useState({});
+
+
+  useEffect(() => {
+    const init = async () => {
+      setIsLoading(true);
+      await initializeGame();
+      setIsLoading(false);
+    };
+  
+    init();
+  }, []);  
+  
 
   const resetRequestState = () => {
     setActiveRequests(0);
@@ -70,51 +85,86 @@ function Game() {
   };
 
   useEffect(() => {
-    initializeGame();
-  }, []);
+    const fetchLink = async () => {
+      if (startPage) {
+        const link = await getWikipediaLink(startPage);
+        setStartPageLink(link);
+      }
+    };
+    fetchLink();
+  }, [startPage]);
+  
+  useEffect(() => {
+    const fetchLink = async () => {
+      if (endPage) {
+        const link = await getWikipediaLink(endPage);
+        setEndPageLink(link);
+      }
+    };
+    fetchLink();
+  }, [endPage]);
+
+  useEffect(() => {
+    const fetchLinks = async () => {
+      const newLinkMap = { ...linkMap };
+      for (const link of clickedLinks) {
+        if (!newLinkMap[link]) {
+          newLinkMap[link] = await getWikipediaLink(link);
+        }
+      }
+      setLinkMap(newLinkMap);
+    };
+    if (clickedLinks.length > 0) {
+      fetchLinks();
+    }
+  }, [clickedLinks]);
+  
 
   const fetchRandomPage = async () => {
-    const randomIndex = Math.floor(Math.random() * articleTitles.length);
-    const title = articleTitles[randomIndex];
-
-    try {
-      const response = await axios.get(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
-      );
-      if (response.status === 200) {
-        return title;
-      } else {
-        throw new Error('Invalid page title');
+    let validPage = false;
+    let pageTitle = '';
+  
+    while (!validPage) {
+      const randomIndex = Math.floor(Math.random() * articleTitles.length);
+      const title = articleTitles[randomIndex];
+  
+      try {
+        const response = await fetchPageSummary(title);
+        if (response && response.title) {
+          pageTitle = response.title;
+          validPage = true;
+        }
+      } catch (error) {
+        console.error('Error validating page title:', error);
       }
-    } catch (error) {
-      console.error('Error validating page title:', error);
-      return fetchRandomPage();
     }
+  
+    return pageTitle;
   };
 
   const initializeGame = async () => {
+    setLoading(true);
     let validPairFound = false;
-
+  
     while (!validPairFound) {
       const start = await fetchRandomPage();
       let end = await fetchRandomPage();
-
+  
       while (start === end) {
         end = await fetchRandomPage();
       }
-
+  
       try {
-        console.log('Checking for direct link from start to end');
         const response = await axios.get(
-          `https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(start)}`
+          `https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(start.replace('/wiki/', ''))}`
         );
         const startPageContent = response.data;
-
+  
         if (!startPageContent.includes(`/wiki/${encodeURIComponent(end)}`)) {
           validPairFound = true;
           setStartPage(start);
           setEndPage(end);
-          fetchPageContent(start);
+          await fetchPageContent(`/wiki/${encodeURIComponent(start)}`);
         } else {
           console.log('Direct link found, retrying with a new end page.');
         }
@@ -122,27 +172,39 @@ function Game() {
         console.error('Error fetching page content for validation:', error);
       }
     }
+    setLoading(false);
   };
+  
+  
 
-  const fetchPageContent = async (title) => {
+  const fetchPageContent = async (linkHref) => {
+    window.scrollTo(0, 0);
+  
     try {
-      console.log('Fetching content for:', title);
-      const encodedTitle = encodeURIComponent(title).replace(/[()]/g, (c) => `%${c.charCodeAt(0).toString(16)}`);
+      const title = decodeURIComponent(linkHref.replace('/wiki/', '').replace(/_/g, ' '));
       const response = await axios.get(
-        `https://en.wikipedia.org/api/rest_v1/page/html/${encodedTitle}`
+        `https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title)}`
       );
-      console.log('Content fetched for:', title);
+  
       if (response.data) {
         setCurrentPageContent(response.data);
         setCurrentPageTitle(title);
-        window.scrollTo(0, 0);
-        fetchPageImageAndDescription(title);
+        console.log(`Success: Loaded content for ${title}`);
       }
     } catch (error) {
       console.error('Error fetching page content:', error);
-      alert(`Failed to load page content for "${title}". Please try a different link.`);
+      alert(`An unexpected error occurred while loading "${linkHref}".`);
     }
   };
+  
+  
+  
+  
+  
+  
+  
+  
+   
 
   const fetchPageImageAndDescription = async (title) => {
     try {
@@ -168,50 +230,39 @@ function Game() {
 //   // Logic to process request queue can be implemented here if needed
 // };
 
-  const handleLinkClick = (linkElement) => {
-    let linkHref = linkElement.getAttribute('href');
-    console.log('Link href:', linkHref);
+const handleLinkClick = async (linkHref) => {
+  if (!linkHref.startsWith('/wiki/')) {
+    console.warn('Invalid link clicked:', linkHref);
+    return;
+  }
 
-    if (!linkHref) {
-      return;
+  // Extract the page title from the linkHref
+  const pageTitle = decodeURIComponent(linkHref.replace('/wiki/', '').replace(/_/g, ' '));
+
+  try {
+    // Fetch the content of the new page
+    const response = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(pageTitle)}`);
+    
+    if (response.data) {
+      // Set the current page content and title if the fetch was successful
+      setCurrentPageContent(response.data);
+      setCurrentPageTitle(pageTitle);
+      
+      // Scroll to the top of the page
+      window.scrollTo(0, 0);
+      
+      // Update click history and click count after successful load
+      setClickedLinks((prevLinks) => [...prevLinks, pageTitle]);
+      setClickCount((prevCount) => prevCount + 1);
     }
+  } catch (error) {
+    console.error('Error fetching page content for link:', error);
+    alert(`Failed to load page content for "${pageTitle}".`);
+  }
+};
 
-    if (linkHref.startsWith('./')) {
-      linkHref = linkHref.replace('./', '/wiki/');
-    } else if (linkHref.startsWith('../')) {
-      linkHref = linkHref.replace('../', '/wiki/');
-    } else if (!linkHref.startsWith('/')) {
-      linkHref = '/wiki/' + linkHref;
-    }
 
-    if (!linkHref.startsWith('/wiki/')) {
-      return;
-    }
 
-    if (linkHref.includes(':') || linkHref.includes('#') || linkHref.includes('?')) {
-      return;
-    }
-
-    const pageTitle = decodeURIComponent(linkHref.replace('/wiki/', '')).replace(/_/g, ' ').toLowerCase();
-
-    console.log('Navigating to page:', pageTitle);
-
-    fetchPageContent(pageTitle)
-      .then(() => {
-        setClickCount((prevCount) => prevCount + 1);
-        setClickedLinks((prevLinks) => [...prevLinks, pageTitle]);
-      })
-      .catch((error) => {
-        console.error('Error loading page content:', error);
-        if (window.confirm('Failed to load page. Would you like to retry?')) {
-          handleLinkClick(linkElement);  // Retry the link click
-        }
-      });
-
-    if (pageTitle === endPage.replace(/_/g, ' ').toLowerCase()) {
-      setGameEnded(true);
-    }
-  };
 
   const handleMouseEnter = (title) => {
     setHoveredLink(title);
@@ -235,7 +286,8 @@ function Game() {
         links.forEach((link) => {
           link.addEventListener('click', (e) => {
             e.preventDefault();
-            handleLinkClick(link);
+            const linkHref = link.getAttribute('href');
+            handleLinkClick(linkHref);
           });
           link.addEventListener('mouseenter', () => {
             let linkHref = link.getAttribute('href');
@@ -254,6 +306,7 @@ function Game() {
       }
     }
   }, [currentPageContent]);
+  
 
   const renderPageContent = () => {
     const sanitizedContent = DOMPurify.sanitize(currentPageContent, {
@@ -321,13 +374,44 @@ function Game() {
     initializeGame();
   };
 
-  const getWikipediaLink = (articleTitle) => {
-    return `https://en.wikipedia.org/wiki/${encodeURIComponent(articleTitle)}`;
-  };
-
-  if (!startPage || !endPage) {
-    return <div>Loading...</div>;
+  const fetchPageSummary = async (title) => {
+  try {
+    const response = await axios.get(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
+    );
+    if (response.data) {
+      return response.data;
+    }
+  } catch (error) {
+    console.error("Error fetching page summary:", error);
   }
+};
+
+const getCanonicalURL = async (articleTitle) => {
+  const summaryData = await fetchPageSummary(articleTitle);
+  if (summaryData && summaryData.content_urls) {
+    return summaryData.content_urls.desktop.page; // Use the canonical desktop URL
+  }
+  return null; // Handle cases where the page is not found
+};
+
+const getWikipediaLink = async (articleTitle) => {
+  const url = await getCanonicalURL(articleTitle);
+  if (url) {
+    return url;
+  }
+  console.error('Failed to generate Wikipedia link for:', articleTitle);
+  return '#'; // Fallback URL
+};
+
+if (loading) {
+  return <div>Loading game, please wait...</div>;
+}
+
+if (!startPage || !endPage) {
+  return <div>Loading...</div>;
+}
+
 
   if (gameEnded) {
     return (
@@ -346,25 +430,46 @@ function Game() {
       <div className="gui-wrapper">
         <div className="game-gui"> 
           <h1>Wiki Game</h1>
-          <p>Start Page: <a href={getWikipediaLink(startPage)} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(startPage)} onMouseLeave={handleMouseLeave}>{startPage}</a></p>
-          <div className="click-history">
-            <ul>
-              {clickedLinks.map((link, index) => (
-                <li key={index}>
-                  <a 
-                    href={getWikipediaLink(link)} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    onMouseEnter={() => handleMouseEnter(link)}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <p>End Page: <a href={getWikipediaLink(endPage)} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(endPage)} onMouseLeave={handleMouseLeave}>{endPage}</a></p>
+            <p>Start Page: 
+              {startPageLink ? (
+                <a href={startPageLink} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(startPage)} onMouseLeave={handleMouseLeave}>
+                  {startPage}
+                </a>
+              ) : (
+                <span>Loading...</span>
+              )}
+            </p>
+            <div className="click-history">
+              <ul>
+                {clickedLinks.map((link, index) => (
+                  <li key={index}>
+                    {linkMap[link] ? (
+                      <a 
+                        href={linkMap[link]} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        onMouseEnter={() => handleMouseEnter(link)}
+                        onMouseLeave={handleMouseLeave}
+                      >
+                        {link}
+                      </a>
+                    ) : (
+                      <span>{link} (Loading...)</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p>End Page: 
+              {endPageLink ? (
+                <a href={endPageLink} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(endPage)} onMouseLeave={handleMouseLeave}>
+                  {endPage}
+                </a>
+              ) : (
+                <span>Loading...</span>
+              )}
+            </p>
           <div className="timer-clicks">
             <p>Timer: {formatTime(timer)}</p>
             <p>Clicks: {clickCount}</p>
