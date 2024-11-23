@@ -176,9 +176,7 @@ const [linkMap, setLinkMap] = useState({});
   };
   
   
-
   const fetchPageContent = async (linkHref) => {
-    window.scrollTo(0, 0);
   
     try {
       const title = decodeURIComponent(linkHref.replace('/wiki/', '').replace(/_/g, ' '));
@@ -196,13 +194,6 @@ const [linkMap, setLinkMap] = useState({});
       alert(`An unexpected error occurred while loading "${linkHref}".`);
     }
   };
-  
-  
-  
-  
-  
-  
-  
   
    
 
@@ -247,19 +238,24 @@ const handleLinkClick = async (linkHref) => {
       // Set the current page content and title if the fetch was successful
       setCurrentPageContent(response.data);
       setCurrentPageTitle(pageTitle);
-      
-      // Scroll to the top of the page
-      window.scrollTo(0, 0);
-      
+
       // Update click history and click count after successful load
       setClickedLinks((prevLinks) => [...prevLinks, pageTitle]);
       setClickCount((prevCount) => prevCount + 1);
+
+      // Check if the end page is reached and set gameEnded to true
+      if (pageTitle === endPage) {
+        setGameEnded(true);
+      }
     }
   } catch (error) {
     console.error('Error fetching page content for link:', error);
     alert(`Failed to load page content for "${pageTitle}".`);
   }
 };
+
+
+
 
 
 
@@ -285,12 +281,15 @@ const handleLinkClick = async (linkHref) => {
         const links = container.querySelectorAll('a[href]');
         links.forEach((link) => {
           link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const linkHref = link.getAttribute('href');
-            handleLinkClick(linkHref);
+  e.preventDefault();
+  const linkHref = link.getAttribute('href');
+  if (linkHref.startsWith('/wiki/')) {
+    handleLinkClick(linkHref);
+  }
           });
           link.addEventListener('mouseenter', () => {
-            let linkHref = link.getAttribute('href');
+  let linkHref = link.getAttribute('href');
+  if (!linkHref.startsWith('/wiki/')) return;
             if (linkHref.startsWith('./')) {
               linkHref = linkHref.replace('./', '/wiki/');
             } else if (linkHref.startsWith('../')) {
@@ -341,17 +340,27 @@ const handleLinkClick = async (linkHref) => {
       console.error('Failed to append Wikipedia stylesheets due to missing head element.');
     }
   
-    sanitizedContent.querySelectorAll('a[href]').forEach((link) => {
-      let linkHref = link.getAttribute('href');
-      if (linkHref.startsWith('./')) {
-        linkHref = linkHref.replace('./', '/wiki/');
-      } else if (linkHref.startsWith('../')) {
-        linkHref = linkHref.replace('../', '/wiki/');
-      } else if (!linkHref.startsWith('/')) {
-        linkHref = '/wiki/' + linkHref;
-      }
-      link.setAttribute('href', linkHref);
-    });
+    // Modify links: make non-Wikipedia links plain text
+sanitizedContent.querySelectorAll('a[href]').forEach((link) => {
+  let linkHref = link.getAttribute('href');
+
+  // Convert relative links to proper Wikipedia links
+  if (linkHref.startsWith('./')) {
+    linkHref = linkHref.replace('./', '/wiki/');
+  } else if (linkHref.startsWith('../')) {
+    linkHref = linkHref.replace('../', '/wiki/');
+  }
+
+  // If the link is not a Wikipedia article or is an annotation link (e.g., contains #cite_note), replace it with plain text
+  if (!linkHref.startsWith('/wiki/') || linkHref.includes('#cite_note') || linkHref.includes('#')) {
+    const span = document.createElement('span');
+    span.textContent = link.textContent;
+    link.replaceWith(span);
+  } else {
+    // Set the corrected link href for Wikipedia articles
+    link.setAttribute('href', linkHref);
+  }
+});
   
     return (
       <div
@@ -404,6 +413,7 @@ const getWikipediaLink = async (articleTitle) => {
   return '#'; // Fallback URL
 };
 
+
 if (loading) {
   return <div>Loading game, please wait...</div>;
 }
@@ -412,83 +422,84 @@ if (!startPage || !endPage) {
   return <div>Loading...</div>;
 }
 
-
-  if (gameEnded) {
-    return (
-      <div className="congrats-screen">
-        <h2>Congratulations!</h2>
-        <p>You reached the end page.</p>
-        <p>Time Taken: {formatTime(timer)}</p>
-        <p>Number of Clicks: {clickCount}</p>
-        <button onClick={resetGame}>Play Again</button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="game-container">
-      <div className="gui-wrapper">
-        <div className="game-gui"> 
-          <h1>Wiki Game</h1>
-            <p>Start Page: 
-              {startPageLink ? (
-                <a href={startPageLink} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(startPage)} onMouseLeave={handleMouseLeave}>
-                  {startPage}
-                </a>
-              ) : (
-                <span>Loading...</span>
-              )}
-            </p>
-            <div className="click-history">
-              <ul>
-                {clickedLinks.map((link, index) => (
-                  <li key={index}>
-                    {linkMap[link] ? (
-                      <a 
-                        href={linkMap[link]} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        onMouseEnter={() => handleMouseEnter(link)}
-                        onMouseLeave={handleMouseLeave}
-                      >
-                        {link}
-                      </a>
-                    ) : (
-                      <span>{link} (Loading...)</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <p>End Page: 
-              {endPageLink ? (
-                <a href={endPageLink} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(endPage)} onMouseLeave={handleMouseLeave}>
-                  {endPage}
-                </a>
-              ) : (
-                <span>Loading...</span>
-              )}
-            </p>
-          <div className="timer-clicks">
-            <p>Timer: {formatTime(timer)}</p>
-            <p>Clicks: {clickCount}</p>
+return (
+  <div className="game-container">
+    <div className="gui-wrapper">
+      <div className="game-gui">
+        <div className="guiHeader">
+          <h1>Blue Links</h1>
           </div>
-          {showHoveredContent && (
-            <div className="hovered-content">
-              <h1>{hoveredLink}</h1>
-              {hoveredImage && <img src={hoveredImage} alt="Hovered article thumbnail" />}
-              {hoveredLink && <p>{hoveredLink}</p>}
-            </div>
+        <p>Start Page:
+          {startPageLink ? (
+            <a href={startPageLink} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(startPage)} onMouseLeave={handleMouseLeave}>
+              {startPage}
+            </a>
+          ) : (
+            <span>Loading...</span>
           )}
+        </p>
+        <div className="click-history">
+          <ul>
+            {clickedLinks.map((link, index) => (
+              <li key={index}>
+                {linkMap[link] ? (
+                  <a
+                    href={linkMap[link]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onMouseEnter={() => handleMouseEnter(link)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    {link}
+                  </a>
+                ) : (
+                  <span>{link} (Loading...)</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
+        <p>End Page:
+          {endPageLink ? (
+            <a href={endPageLink} target="_blank" rel="noopener noreferrer" onMouseEnter={() => handleMouseEnter(endPage)} onMouseLeave={handleMouseLeave}>
+              {endPage}
+            </a>
+          ) : (
+            <span>Loading...</span>
+          )}
+        </p>
+        <div className="timer-clicks">
+          <p>Timer: {formatTime(timer)}</p>
+          <p>Clicks: {clickCount}</p>
+        </div>
+        {gameEnded && (
+          <div className="win-message">
+            <h2>Congratulations!</h2>
+            <p>You reached the end page.</p>
+            <p>Time Taken: {formatTime(timer)}</p>
+            <p>Number of Clicks: {clickCount}</p>
+            <button onClick={resetGame}>Play Again</button>
+          </div>
+        )}
+        {showHoveredContent && (
+          <div className="hovered-content">
+            <h1>{hoveredLink}</h1>
+            {hoveredImage && <img src={hoveredImage} alt="Hovered article thumbnail" />}
+            {hoveredLink && <p>{hoveredDescription}</p>}
+          </div>
+        )}
       </div>
-      <div className="content-area">
+    </div>
+    <div className="content-area">
+      <div className="content-header">
         <h1>{currentPageTitle}</h1>
+      </div>
+      <div className="content-scrollable">
         {renderPageContent()}
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default Game;
