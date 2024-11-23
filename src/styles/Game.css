@@ -1,30 +1,67 @@
 /* src/styles/Game.css */
 
 /* General App styling */
+
 .App {
     text-align: center;
   }
+
+  body {
+    font-family: "League Spartan", sans-serif;
+    font-optical-sizing: auto;
+    background-color: #ffffff;
+}
+
+.game-container,
+.game-gui,
+.article-container,
+.content-area,
+.win-message,
+.hovered-content,
+.content-header {
+  font-family: "League Spartan", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  color: #3e3f41;
+}
+
+a {
+  font-weight: 600;
+  color: #457DFF;
+}
+
+h1 {
+  color: #457DFF;
+  font-weight: 700;
+}
 
   
   .game-container {
     display: flex;
     justify-content: center;
-    /* align-items: flex-end;
-    gap: 20px; */
+    height: 100vh; /* Full viewport height */
+    overflow: hidden;
   }
 
   /* Game GUI styling */
   .gui-wrapper {
-    margin: 0 20px;
+    /* margin: 0 20px; */
+    overflow-y: auto;
     width: 300px; 
   }
 
   .game-gui {
     text-align: left;
     margin: 0 20px;
-    max-width: 280px;
     position: fixed;
+    width: 300px;
 }
+
+  .guiHeader {
+    padding: 20px 20px 20px 0;
+    border-bottom: 1px solid #ddd;
+    width: 300px;
+  }
 
 .hovered-content {
     max-width: 100%;
@@ -36,10 +73,29 @@
   }
 
  .content-area {
-    margin: 0 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* margin: 0 20px; */
     text-align: left;
     width: calc(100% - 300px);
     z-index: 100;
+}
+
+.content-header {
+  flex: 0 0 auto;
+  padding: 20px;
+
+  border-bottom: 1px solid #ddd;
+  position: sticky; /* Keeps the header at the top */
+  top: 0;
+  z-index: 1; /* Ensure the header stays above the rest of the content */
+}
+
+.content-scrollable {
+  flex: 1 1 auto;
+  overflow-y: auto;
 }
   
   /* Timer and click counter styling */
@@ -58,10 +114,8 @@
   .article-container {
     flex-grow: 1;
     padding: 20px;
-    background-color: #ffffff;
-    border: 1px solid #ccc;
-    border-radius: 5px;
     box-sizing: border-box;
+    line-height: 1.5;
 }
 
   
