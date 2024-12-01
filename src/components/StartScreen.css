@@ -1,0 +1,39 @@
+.start-screen {
+    text-align: center;
+}
+
+.start-screen h1 {
+    margin-bottom: 20px;
+}
+
+.start-screen p {
+    margin-bottom: 10px;
+}
+
+.article-links {
+    display: flex;
+    justify-content: center;
+    gap: 100px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.article-title-container.fixed-width {
+    width: 300px;
+    text-align: center;
+}
+
+.article-link-container {
+    text-align: center;
+}
+
+.article-link-container a {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 4em;
+    font-weight: bold;
+}
+
+.start-game-button {
+    margin-top: 20px;
+}

@@ -3,13 +3,13 @@
 /* General App styling */
 
 .App {
-    text-align: center;
-  }
+  text-align: center;
+}
 
-  body {
-    font-family: "League Spartan", sans-serif;
-    font-optical-sizing: auto;
-    background-color: #ffffff;
+body {
+  font-family: "League Spartan", sans-serif;
+  font-optical-sizing: auto;
+  background-color: #ffffff;
 }
 
 .game-container,
@@ -25,9 +25,24 @@
   color: #3e3f41;
 }
 
-a {
-  font-weight: 600;
+/* Article links styling */
+.content-area a {
   color: #457DFF;
+  text-decoration: none;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+  padding: 3px;
+  margin: -3px;
+  background: linear-gradient(#457DFF, #457DFF);
+  background-size: 0% auto;
+  border-radius: 5px; /* Rounded corners for gradient highlight */
+  transition: color 0.15s ease-in-out;
+}
+
+.content-area a:hover {
+  color: #fff;
+  background-size: 100% auto;
 }
 
 h1 {
@@ -35,58 +50,206 @@ h1 {
   font-weight: 700;
 }
 
-  
-  .game-container {
-    display: flex;
-    justify-content: center;
-    height: 100vh; /* Full viewport height */
-    overflow: hidden;
-  }
-
-  /* Game GUI styling */
-  .gui-wrapper {
-    /* margin: 0 20px; */
-    overflow-y: auto;
-    width: 300px; 
-  }
-
-  .game-gui {
-    text-align: left;
-    margin: 0 20px;
-    position: fixed;
-    width: 300px;
+.game-container {
+  display: flex;
+  justify-content: center;
+  height: 100vh; /* Full viewport height */
+  overflow: hidden;
 }
 
-  .guiHeader {
-    padding: 20px 20px 20px 0;
-    border-bottom: 1px solid #ddd;
-    width: 300px;
-  }
+/* Game GUI styling */
+.gui-wrapper {
+  /* margin: 0 20px; */
+  overflow-y: auto;
+  width: 300px; 
+}
+
+.game-gui {
+  text-align: left;
+  margin: 0 20px;
+  position: fixed;
+  width: 260px;
+}
+
+.guiHeader {
+  padding: 20px 20px 20px 0;
+  border-bottom: 1px solid #ddd;
+  width: 300px;
+}
 
 .hovered-content {
-    max-width: 100%;
-  }
-  
-  .hovered-content img {
-    max-width: 100%;
-    height: auto;
-  }
+  max-width: 100%;
+}
 
- .content-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    /* margin: 0 20px; */
-    text-align: left;
-    width: calc(100% - 300px);
-    z-index: 100;
+.hovered-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* margin: 0 20px; */
+  text-align: left;
+  width: calc(100% - 300px);
+  z-index: 100;
+}
+
+.content-area img.thumbimage {
+  float: right; /* or left depending on the image alignment needed */
+  margin: 10px;
+  max-width: 300px; /* Set a reasonable width to avoid oversized images */
+}
+
+.content-area .thumb {
+  float: right; /* Or float: left; depending on the article */
+  margin: 0 0 1em 1em;
+  width: auto;
+  max-width: 100%; /* Allow the thumb to take the width of its container */
+}
+
+.content-area .thumbcaption {
+  font-size: 0.85em;
+  color: #555;
+  text-align: center;
+  word-wrap: break-word; /* Ensure captions wrap properly */
+}
+
+.infobox {
+  float: right;
+  width: 250px;
+  margin: 0 0 1em 1em;
+  background-color: #f9f9f9;
+  padding: 5px;
+  font-size: 90%;
+  border: 1px solid #aaa;
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
+
+.wikitable {
+  border: 1px solid #a2a9b1;
+  background-color: #f8f9fa;
+  margin: 1em 0;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.wikitable th, .wikitable td {
+  border: 1px solid #a2a9b1;
+  padding: 0.5em;
+  word-wrap: break-word; /* Ensure table cells wrap text properly */
+}
+
+.sidebar {
+  float: right; /* Float the sidebar to the right */
+  width: 20em; /* Set the width as indicated in the original element */
+  margin: 0 0 1em 1em; /* Add some margin to separate it from the main content */
+  background-color: #f9f9f9; /* Light background to make it look more like Wikipedia */
+  border: 1px solid #a2a9b1; /* Subtle border similar to Wikipedia */
+  padding: 10px; /* Padding inside the sidebar */
+  clear: both;
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
+
+.sidebar-title {
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-bottom: 0.5em;
+}
+
+.sidebar img {
+  width: auto; /* Remove fixed width */
+  max-width: 100%; /* Allow the image to take up the sidebar width */
+  height: auto;
+}
+
+.sidebar-content {
+  margin-top: 1em;
+}
+
+.sidebar-list {
+  list-style-type: none; /* Remove bullets from lists in the sidebar */
+  padding: 0;
+}
+
+.sidebar-list li {
+  margin-bottom: 0.5em; /* Add spacing between list items */
+}
+
+.thumb {
+  float: right; /* Or float: left; depending on the article */
+  margin: 0 0 1em 1em;
+  width: auto;
+  max-width: 300px; /* Adjust max-width to prevent thumbnails from expanding too much */
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
+
+.thumbinner {
+  padding: 5px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  width: auto; /* Allow the thumb inner container to adjust */
+  max-width: 300px; /* Prevent the thumb inner container from taking full width */
+}
+
+.thumbcaption {
+  text-align: center;
+  font-size: 0.85em;
+  padding: 5px;
+  word-wrap: break-word; /* Ensure captions wrap properly */
+}
+
+.frame {
+  border: 1px solid #a2a9b1;
+  padding: 5px;
+  background-color: #f9f9f9;
+  margin: 1em 0;
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
+
+.frame img {
+  display: block;
+  margin: 0 auto;
+}
+
+.frame-caption {
+  text-align: center;
+  font-style: italic;
+  font-size: 0.9em;
+  word-wrap: break-word; /* Ensure captions wrap properly */
+}
+
+figure {
+  display: inline-block; /* Keep the image and caption together */
+  margin: 1em auto; /* Center the figure and add space around it */
+  border: 1px solid #a2a9b1;
+  background-color: #f9f9f9;
+  padding: 5px;
+  text-align: center;
+  width: auto; /* Allow figure to adjust based on content */
+  max-width: 300px; /* Set a suitable max-width to prevent full-width expansion */
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
+
+figure img {
+  width: auto;
+  height: auto; /* Keep image aspect ratio */
+  display: block; /* Avoid inline display issues */
+  margin: 0 auto; /* Center the image in the figure */
+}
+
+figcaption {
+  font-size: 0.85em; /* Slightly smaller text for caption */
+  color: #555; /* Softer color for captions */
+  margin-top: 5px; /* Space between image and caption */
+  word-wrap: break-word; /* Ensure captions wrap properly */
 }
 
 .content-header {
   flex: 0 0 auto;
   padding: 20px;
-
   border-bottom: 1px solid #ddd;
   position: sticky; /* Keeps the header at the top */
   top: 0;
@@ -96,105 +259,124 @@ h1 {
 .content-scrollable {
   flex: 1 1 auto;
   overflow-y: auto;
-}
-  
-  /* Timer and click counter styling */
-  .timer-clicks {
-    display: flex;
-    justify-content: left;
-    gap: 20px;
-  }
-  
-  /* Congratulations screen styling */
-  .congrats-screen {
-    text-align: center;
-  }
-  
-  /* Container for the Wikipedia article */
-  .article-container {
-    flex-grow: 1;
-    padding: 20px;
-    box-sizing: border-box;
-    line-height: 1.5;
+  padding: 20px 20px 20px 0;
+  word-wrap: break-word; /* Ensure text wraps properly */
 }
 
-  
-  /* Ensure images are wrapped by text, similar to Wikipedia's formatting */
-  .article-container img {
-    height: auto;
-    max-width: 40%; /* Limit image width to 40% */
-    float: left; /* Float images to the left by default */
-    margin: 10px; /* Add margin around images */
-  }
+.timer-clicks-wrapper {
+  display: flex;
+  width: 100%;
+}
+.timer {
+  flex: 1;
+  text-align: center;
+}
+.click-counter {
+  flex: 1;
+  text-align: center;
+}
 
-  /* Right-align every other image in the article content */
-  .article-container img:nth-of-type(2n) {
-    float: right;
-  }
-  
-  /* Image caption container styling */
-  .image-caption-container {
-    background-color: #f0f0f0;
-    padding: 5px;
-    margin: 10px;
-    display: inline-block;
-    width: auto; /* Fit caption width to image width */
-    max-width: 40%;
-    float: left;
-    clear: both;
-  }
+/* Congratulations screen styling */
+.congrats-screen {
+  text-align: center;
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
 
-  /* Ensure captions are left-aligned below images */
-  .image-caption-container figcaption {
-    text-align: left;
-  }
+/* Container for the Wikipedia article */
+.article-container {
+  flex-grow: 1;
+  padding: 20px;
+  box-sizing: border-box;
+  line-height: 1.5;
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
 
-  /* Right-align every other image caption container */
-  .article-container .image-caption-container:nth-of-type(2n) {
-    float: right;
-  }
+/* Ensure images are wrapped by text, similar to Wikipedia's formatting */
+.article-container img {
+  height: auto;
+  max-width: 100%; /* Allow images to take the full width of their container */
+  float: left; /* Float images to the left by default */
+  margin: 10px auto; /* Center align images with margin */
+}
 
-  /* Ensure infoboxes, sidebars, and other sidebar elements float to the right with consistent width */
-  .article-container .infobox, 
-  .article-container .toc, 
-  .article-container .metadata,
-  .article-container .sidebar,
-  .article-container .sidebar-collapse,
-  .article-container .nomobile,
-  .article-container .nowraplinks,
-  .article-container .plainlist,
-  .article-container .thumb,
-  .article-container .tmulti,
-  .article-container .tright {
-    float: right;
-    margin-left: 20px;
-    margin-bottom: 10px;
-    width: 250px; /* Set a consistent width for all sidebar elements */
-    clear: right; /* Prevent stacking at the top */
-  }
+/* Right-align every other image in the article content */
+.article-container img:nth-of-type(2n) {
+  float: right;
+}
 
-  /* Wikitable styling */
-  .article-container .wikitable {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-  }
+/* Image caption container styling */
+.image-caption-container {
+  background-color: #f0f0f0;
+  padding: 5px;
+  margin: 10px;
+  display: inline-block;
+  width: auto; /* Fit caption width to image width */
+  max-width: 40%;
+  float: left;
+  clear: both;
+  word-wrap: break-word; /* Ensure captions wrap properly */
+}
 
-  .article-container .wikitable th {
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-  }
+/* Ensure captions are left-aligned below images */
+.image-caption-container figcaption {
+  text-align: left;
+  word-wrap: break-word; /* Ensure captions wrap properly */
+}
 
-  .article-container .wikitable td {
-    border: 1px solid #ddd;
-    padding: 8px;
-  }
-  
-  /* Override Wikipedia's default styles for consistent look */
-  .mw-parser-output > * {
-    max-width: 100%;
-  }
+/* Right-align every other image caption container */
+.article-container .image-caption-container:nth-of-type(2n) {
+  float: right;
+}
 
-  
+/* Ensure infoboxes, sidebars, and other sidebar elements float to the right with consistent width */
+.article-container .infobox, 
+.article-container .toc, 
+.article-container .metadata,
+.article-container .sidebar,
+.article-container .sidebar-collapse,
+.article-container .nomobile,
+.article-container .nowraplinks,
+.article-container .plainlist,
+.article-container .thumb,
+.article-container .tmulti,
+.article-container .tright {
+  float: right;
+  margin-left: 20px;
+  margin-bottom: 10px;
+  width: 250px; /* Set a consistent width for all sidebar elements */
+  clear: right; /* Prevent stacking at the top */
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
+
+/* Wikitable styling */
+.article-container .wikitable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
+
+.article-container .wikitable th {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
+
+.article-container .wikitable td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
+
+.non-clickable-link {
+  color: inherit;  /* Use the same color as surrounding text */
+  text-decoration: none;  /* Remove underline styling */
+}
+
+/* Override Wikipedia's default styles for consistent look */
+.mw-parser-output > * {
+  max-width: 100%;
+  word-wrap: break-word; /* Ensure text wraps properly */
+}
