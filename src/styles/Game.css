@@ -9,7 +9,7 @@
 body {
   font-family: "League Spartan", sans-serif;
   font-optical-sizing: auto;
-  background-color: #ffffff;
+  background-color: #F4FAFF;
 }
 
 .game-container,
@@ -55,13 +55,17 @@ h1 {
   justify-content: center;
   height: 100vh; /* Full viewport height */
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 /* Game GUI styling */
 .gui-wrapper {
-  /* margin: 0 20px; */
-  overflow-y: auto;
-  width: 300px; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #F4FAFF;
 }
 
 .game-gui {
@@ -71,20 +75,139 @@ h1 {
   width: 260px;
 }
 
+.game-gui a {
+  color: #457DFF;
+  font-weight: 700;
+}
+
 .guiHeader {
-  padding: 20px 20px 20px 0;
-  border-bottom: 1px solid #ddd;
-  width: 300px;
+  padding: 20px 20px 0 0;
 }
 
-.hovered-content {
-  max-width: 100%;
+.guiHeader img {
+  width: 180px;
+  margin-bottom: 20px;
 }
 
-.hovered-content img {
-  max-width: 100%;
-  height: auto;
+.game-metrics {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 10px;
 }
+
+.metric {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+  color: #457DFF;
+  font-weight: bold;
+}
+
+.metric-icon {
+  font-size: 1.5rem;
+}
+
+.article-progression {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  height: 100%; /* Take up the full available height */
+  overflow: hidden; /* Hide overflow */
+  position: relative;
+}
+
+.article-progression-scroll {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align dots and titles from the top */
+  align-items: center;
+  gap: 5px; /* Consistent spacing between elements */
+  overflow-y: auto; /* Ensure proper scrolling */
+  height: calc(100% - 40px); /* Adjust to fit parent container */
+}
+
+.article-progression-scroll::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in Chrome, Safari, and Edge */
+}
+
+
+
+
+.article-progression a {
+  color: inherit; /* Match the surrounding text color */
+  text-decoration: none; /* Remove underline */
+}
+
+.article-progression a:hover {
+  text-decoration: none; /* Ensure no underline appears on hover */
+  color: inherit; /* Prevent hover from changing color */
+}
+
+/* Prevent titles from breaking unnecessarily */
+/* Center-align H3 titles on the start page */
+.article-title {
+  text-align: center; /* Center-align the text */
+  width: 100%; /* Take up the full width of the card */
+  margin: 12px 0; /* Add spacing around the title */
+  font-size: 1.5em; /* Adjust font size as needed */
+  font-weight: 700; /* Bold text */
+  color: #457DFF; /* Consistent title color */
+}
+
+
+/* Styling for intermediate article titles */
+.article-progression .article-title:not(.start-article):not(.end-article) {
+  color: #3E3F41; /* Maintain the gray color */
+  font-size: 1.1em; /* Slightly larger font size */
+  font-weight: 500; /* Medium weight */
+  line-height: 1.4; /* Slightly increase line spacing for better readability */
+}
+
+.scrollable-container {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar in IE/Edge */
+}
+
+.scrollable-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in WebKit browsers */
+}
+
+
+.start-article,
+.end-article {
+  color: #457DFF;
+  font-weight: bold;
+}
+
+.progress-dot {
+  width: 10px;
+  height: 10px; /* Explicitly enforce height */
+  min-height: 10px; /* Prevent squeezing */
+  min-width: 10px; /* Prevent squeezing */
+  background-color: #457DFF;
+  border-radius: 50%;
+  margin: 10px 0; /* Vertical spacing */
+  flex-shrink: 0; /* Prevent shrinking in flex container */
+}
+
+/* Larger dots for start and end circles */
+.article-progression .start-article + .progress-dot, /* Dot after the start article */
+.article-progression .progress-dot:last-of-type { /* Dot before the end article */
+  width: 16px;
+  height: 16px;
+  min-height: 16px; /* Prevent squeezing */
+  min-width: 16px; /* Prevent squeezing */
+  background-color: #457DFF; /* Keep the same color */
+}
+
+
 
 .content-area {
   flex: 1;
@@ -116,6 +239,54 @@ h1 {
   text-align: center;
   word-wrap: break-word; /* Ensure captions wrap properly */
 }
+
+/* Ensure .mw-default-size images align correctly */
+.mw-default-size {
+  display: inline-block; /* Align image with text */
+  float: right; /* Align to the right as per Wikipedia style */
+  margin: 0.5em 0 1.3em 1.4em; /* Standard margin from Wikipedia */
+  max-width: 100%; /* Avoid overflow issues */
+  line-height: normal; /* Prevent line height collapse */
+  background-color: var(--background-color-interactive-subtle, #f8f9fa); /* Match Wikipedia background */
+  border: 1px solid var(--border-color-subtle, #c8ccd1); /* Subtle border to emulate Wikipedia */
+}
+
+/* Ensure figures containing .mw-default-size behave consistently */
+figure.mw-default-size {
+  display: table;
+  text-align: center;
+  margin: 0.5em auto; /* Center for single-column layouts */
+  clear: both; /* Ensure no text overlap */
+  float: right; /* Align to the right for multi-column layout */
+  border: 1px solid var(--border-color-subtle, #c8ccd1); /* Match Wikipedia border */
+  background-color: var(--background-color-interactive-subtle, #f8f9fa); /* Subtle background color */
+  padding: 5px;
+  max-width: 300px; /* Match typical Wikipedia max-width */
+}
+
+/* Handle image styling directly */
+.mw-default-size img {
+  display: block; /* Ensure the image is on its own line */
+  margin: 0 auto; /* Center align image */
+  width: auto;
+  height: auto; /* Maintain aspect ratio */
+}
+
+/* Captions for figures */
+figure.mw-default-size figcaption {
+  font-size: 0.85em; /* Slightly smaller than body text */
+  color: #555; /* Subtle caption color */
+  text-align: center;
+  margin-top: 5px; /* Add space between image and caption */
+}
+
+/* Clear floating elements to avoid layout issues */
+.clearfix::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
 
 .infobox {
   float: right;
@@ -176,6 +347,10 @@ h1 {
 
 .sidebar-list li {
   margin-bottom: 0.5em; /* Add spacing between list items */
+}
+
+.sidebar-list a {
+  color: #457DFF;
 }
 
 .thumb {
@@ -249,18 +424,21 @@ figcaption {
 
 .content-header {
   flex: 0 0 auto;
-  padding: 20px;
-  border-bottom: 1px solid #ddd;
-  position: sticky; /* Keeps the header at the top */
+  padding: 40px 20px 20px 20px;
+  position: sticky;
   top: 0;
-  z-index: 1; /* Ensure the header stays above the rest of the content */
+  text-align: center;
 }
 
 .content-scrollable {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 20px 20px 20px 0;
+  padding: 20px;
+  margin: 20px;
   word-wrap: break-word; /* Ensure text wraps properly */
+  background-color: #fff;
+  border: 1px solid #a2a9b1;
+  border-radius: 5px;
 }
 
 .timer-clicks-wrapper {
@@ -380,3 +558,59 @@ figcaption {
   max-width: 100%;
   word-wrap: break-word; /* Ensure text wraps properly */
 }
+
+/* Tooltip Container */
+.hovered-content {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  width: 500px;
+  z-index: 99999;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+/* Tooltip Title */
+.hovered-content h1 {
+  color: #457DFF;
+  font-weight: bold;
+  font-size: 18px;
+  margin: 0 0 10px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Tooltip Content */
+.hovered-content .tooltip-content {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* Tooltip Image */
+.hovered-content img {
+  width: 200px; /* Allow the image to use its natural width */
+  height: auto; /* Maintain the natural aspect ratio */
+  max-width: 100%; /* Prevent images from overflowing their container */
+  max-height: 300px; /* Set a maximum height to ensure consistency */
+  display: block; /* Ensure it takes up its own line */
+  margin: 0 auto; /* Center the image */
+  border-radius: 5px; /* Maintain rounded corners */
+}
+
+
+
+/* Tooltip Description */
+.hovered-content p {
+  font-size: 14px;
+  color: #555;
+  margin: 0;
+  line-height: 1.4;
+  overflow: hidden;
+  position: relative;
+  text-align: left;
+}
+
+

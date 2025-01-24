@@ -1,39 +1,134 @@
+/* General Styling for Start Screen */
 .start-screen {
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centers content vertically */
+  align-items: center;    /* Centers content horizontally */
+  height: 100vh;
+  width: 100vw;
+  background-color: #F4FAFF;
+  position: relative;
 }
 
 .start-screen h1 {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
+  font-size: 2em;
+  color: #457DFF;
 }
 
-.start-screen p {
-    margin-bottom: 10px;
+.articles-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 100px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
 }
 
-.article-links {
-    display: flex;
-    justify-content: center;
-    gap: 100px;
-    align-items: center;
-    margin-bottom: 20px;
+/* Article Label */
+.article-label {
+  color: #457DFF;
+  font-size: 1.2em;
+  margin: 12px 0;
+  font-weight: bold;
 }
 
-.article-title-container.fixed-width {
-    width: 300px;
-    text-align: center;
+/* Article Title */
+.article-title {
+  font-size: 1.5em;
+  font-weight: 700;
+  margin: 12px 0;
+  color: #457DFF
 }
 
-.article-link-container {
-    text-align: center;
+/* Article Image */
+.article-image {
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 5px;
 }
 
-.article-link-container a {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 4em;
-    font-weight: bold;
+/* Article Blurb */
+.article-blurb {
+  font-size: 1em;
+  color: #555;
+  line-height: 1.5;
+  margin: 12px 16px;
+  overflow-y: auto;
+  flex-grow: 1;
+  text-align: left;
 }
 
+/* Button Styling */
 .start-game-button {
-    margin-top: 20px;
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #457DFF;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: "League Spartan", sans-serif;
+  font-optical-sizing: auto;
+}
+
+.start-game-button:hover {
+  transform: scale(1.05);
+  background-color: #3562cc;
+}
+
+.new-article-button {
+  align-self: center;
+  margin-top: auto;
+  margin-bottom: 10px;
+  padding: 10px 20px;
+  background-color: #457DFF;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  font-family: "League Spartan", sans-serif;
+  font-optical-sizing: auto;
+}
+
+.new-article-button:hover {
+  transform: scale(1.05);
+  background-color: #3562cc;
+}
+
+/* Button Alignment */
+.start-game-button-container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.label-article-container h2 {
+  text-align: left;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 400px;
+  height: 550px;
+  background: #ffffff;
+  border: 1px solid #4F4F4F; /* Black border */
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.scrollable-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  text-align: center;
+  margin-bottom: 10px;
 }
